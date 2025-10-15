@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SCFM: Shortcutting Pre-trained Flow Matching Diffusion Models is Almost Free Lunch</title>
+  <meta name="description" content="An ultra-efficient post-training method to distill large flow matching diffusion models into few-step samplers with near-zero cost.">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+      background-color: #fafafa;
+    }
+    h1, h2, h3 {
+      color: #222;
+    }
+    a {
+      color: #0066cc;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    .paper-card {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      margin-bottom: 2rem;
+    }
+    .authors {
+      font-style: italic;
+      margin: 0.5rem 0 1rem;
+    }
+    .highlight {
+      background-color: #fff9c4;
+      padding: 0.2rem 0.4rem;
+      border-radius: 4px;
+    }
+    .metrics-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+    }
+    .metrics-table th, .metrics-table td {
+      border: 1px solid #ddd;
+      padding: 0.5rem;
+      text-align: center;
+    }
+    .metrics-table th {
+      background-color: #f5f5f5;
+    }
+    footer {
+      text-align: center;
+      margin-top: 3rem;
+      color: #777;
+      font-size: 0.9rem;
+    }
+    @media (max-width: 600px) {
+      body { padding: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="paper-card">
+    <h1>SCFM: Shortcutting Pre-trained Flow Matching Diffusion Models is Almost Free Lunch</h1>
+    <p class="authors">
+      Xu Cai<sup>∗†</sup>, Yang Wu<sup>‡</sup>, Qianli Chen<sup>∗</sup>, Haoran Wu<sup>∗</sup>, Lichuan Xiang<sup>§</sup>, Hongkai Wen<sup>§</sup>
+    </p>
+    <p>
+      <strong>NeurIPS 2025</strong> | <a href="https://arxiv.org/abs/2504.xxxxx">arXiv</a> | 
+      <a href="https://github.com/shortcutfm/scfm">Code</a> | 
+
+    </p>
+
+    <h2>🚀 TL;DR</h2>
+    <p>
+      We introduce <span class="highlight">SCFM</span> — a highly efficient post-training distillation method that converts any pre-trained flow matching diffusion model (e.g., Flux, SD3) into a <strong>3–8 step sampler</strong> in <strong><1 A100 day</strong>, <strong>without retraining from scratch</strong> and <strong>without step-size embeddings</strong>.
+    </p>
+
+    <h2>💡 Key Contributions</h2>
+    <ul>
+      <li><strong>Velocity-space self-distillation</strong>: Operates directly on the velocity field to enforce linear trajectory consistency across timesteps.</li>
+      <li><strong>No step-size conditioning needed</strong>: Unlike Shortcut Models (Frans et al. 2025), SCFM works on standard pre-trained FM models out-of-the-box.</li>
+      <li><strong>Few-shot distillation</strong>: Achieves competitive results with as few as <strong>10 training images</strong> — the first successful few-shot distillation for 10B+ parameter diffusion models.</li>
+      <li><strong>Ultra-fast training</strong>: Distills Flux.1-Dev (12B) into a 3-step sampler in under 24 GPU hours using LoRA.</li>
+    </ul>
+
+    <h2>📊 Main Results (Flux.1-Dev → 3 Steps)</h2>
+    <table class="metrics-table">
+      <thead>
+        <tr>
+          <th>Method</th>
+          <th>Steps</th>
+          <th>Latency (A100, s)</th>
+          <th>ΔFID ↓</th>
+          <th>FID ↓</th>
+          <th>CLIP ↑</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Flux-HyperSD</td>
+          <td>3</td>
+          <td>1.33</td>
+          <td>-1.52</td>
+          <td>9.65</td>
+          <td>31.95</td>
+        </tr>
+        <tr>
+          <td>Flux-TDD</td>
+          <td>3</td>
+          <td>1.33</td>
+          <td>-4.46</td>
+          <td>8.26</td>
+          <td>31.38</td>
+        </tr>
+        <tr style="background-color: #e8f5e9;">
+          <td><strong>Flux-SCFM (Ours)</strong></td>
+          <td><strong>3</strong></td>
+          <td><strong>1.33</strong></td>
+          <td><strong>-1.01</strong></td>
+          <td><strong>6.34</strong></td>
+          <td><strong>33.10</strong></td>
+        </tr>
+        <tr>
+          <td>Flux-Schnell (Official)</td>
+          <td>3</td>
+          <td>1.33</td>
+          <td>-6.58</td>
+          <td>7.06</td>
+          <td>33.06</td>
+        </tr>
+      </tbody>
+    </table>
+    <p><em>SCFM achieves the best FID and CLIP scores among 3-step distilled models — and does so without adversarial distillation (ADD/LADD).</em></p>
+
+    <h2>🖼️ Visual Comparison</h2>
+    <img src="fig/flux_exp_main.png" alt="Visual Comparison" width="100%" />
+    <h2>📦 Get Started</h2>
+    <ul>
+      <li>✅ <strong>Compatible</strong> with any pre-trained flow matching model (Flux, SD3, etc.)</li>
+      <li>✅ Uses <strong>LoRA</strong> for parameter-efficient fine-tuning</li>
+      <li>✅ No need for large datasets(self generated) — works in <strong>few-shot</strong> regime</li>
+      <li>✅ Inference uses standard ODE solvers(flow match) — no architectural changes</li>
+    </ul>
+
+    <h2>🔗 Resources</h2>
+    <ul>
+      <li><a href="https://github.com/shortcutfm/scfm">GitHub Repository</a></li>
+      <li><a href="https://arxiv.org/abs/2504.xxxxx">arXiv (coming soon)</a></li>
+    </ul>
+
+    <h2>📬 Contact</h2>
+    <p>Questions? Reach out to the corresponding author: <a href="mailto:caitreex@gmail.com">caitreex@gmail.com</a></p>
+  </div>
+
+  <footer>
+    © 2025 SCFM Authors | This site is open-source and built for GitHub Pages.
+  </footer>
+
+</body>
+</html>
